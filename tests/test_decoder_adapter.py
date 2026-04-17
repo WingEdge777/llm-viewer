@@ -1,7 +1,6 @@
 from llm_viewer.profiles import ProfileName, get_profile
 from llm_viewer.registry import build_graph_bundle
 
-
 BASE_CONFIG = {
     "model_type": "llama",
     "hidden_size": 4096,
@@ -64,8 +63,13 @@ def test_qwen3_is_supported():
 
     assert bundle.metadata["model_type"] == "qwen3"
     assert bundle.metadata["transformers_config_class"] == "Qwen3Config"
-    assert next(node for node in model_graph.nodes if node.id == "repeated_block").attrs["repeat"] == 36
-    assert next(node for node in block_graph.nodes if node.id == "attn_mix").name == "Qwen3 Attention"
+    assert (
+        next(node for node in model_graph.nodes if node.id == "repeated_block").attrs["repeat"]
+        == 36
+    )
+    assert (
+        next(node for node in block_graph.nodes if node.id == "attn_mix").name == "Qwen3 Attention"
+    )
 
 
 def test_stablelm_is_supported():
