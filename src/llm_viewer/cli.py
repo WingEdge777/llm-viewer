@@ -9,9 +9,11 @@ from llm_viewer.config import load_model_config
 from llm_viewer.profiles import ProfileName, get_profile
 from llm_viewer.registry import build_graph_bundle
 from llm_viewer.server import run_app
+from llm_viewer.settings import get_settings
 
 
 def build_parser() -> argparse.ArgumentParser:
+    settings = get_settings()
     parser = argparse.ArgumentParser(prog="llm-viewer")
     subparsers = parser.add_subparsers(dest="command")
 
@@ -27,18 +29,19 @@ def build_parser() -> argparse.ArgumentParser:
     extract.add_argument("--indent", type=int, default=2, help="JSON indent")
 
     app = subparsers.add_parser("app", help="Start local browser app")
-    app.add_argument("--host", default="127.0.0.1", help="Host to bind")
-    app.add_argument("--port", type=int, default=8000, help="Port to bind")
+    app.add_argument("--host", default=settings.host, help="Host to bind")
+    app.add_argument("--port", type=int, default=settings.port, help="Port to bind")
     app.add_argument("--no-open", action="store_true", help="Do not auto-open browser")
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
+    settings = get_settings()
     if argv is None:
         argv = sys.argv[1:]
 
     if not argv:
-        return run_app(host="127.0.0.1", port=8000, open_browser=True)
+        return run_app(host=settings.host, port=settings.port, open_browser=True)
 
     parser = build_parser()
     args = parser.parse_args(argv)
