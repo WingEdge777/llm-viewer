@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>LLM Viewer</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body class="default">
+  <input id="file-input" class="open-file-dialog" type="file" accept=".json,application/json">
+  <div id="app" class="app">
+    <div class="target" id="target">
+      <div class="canvas-wrap">
+        <div id="dropzone" class="welcome center">
+          <div class="welcome-card">
+            <div class="welcome-text">Drag model <code>config.json</code> here. Browser renders model's structure, data flow/shape.</div>
+            <div class="welcome-actions">
+              <button id="open-button" class="logo-button">Open config.json file</button>
+            </div>
+            <div id="error-banner" class="error-banner hidden"></div>
+          </div>
+        </div>
+        <div id="titlebar" class="titlebar hidden">
+          <div class="titlebar-content">
+            <span id="title-text" class="titlebar-content-text"></span>
+          </div>
+        </div>
+        <div id="graph-surface" class="graph-surface">
+          <svg id="edge-layer" class="edge-layer"></svg>
+          <div id="node-layer" class="node-layer"></div>
+        </div>
+      </div>
+      <div id="sidebar" class="sidebar hidden">
+        <div class="sidebar-title">Documentation</div>
+        <button id="sidebar-close" class="sidebar-closebutton" title="Close">×</button>
+        <div class="sidebar-content">
+          <div id="sidebar-object" class="sidebar-object">
+            <div class="empty-state">Select a node.</div>
+          </div>
+        </div>
+      </div>
+      <div id="bottom-toolbar" class="toolbar hidden">
+        <button id="zoom-in" class="toolbar-button" title="Zoom in">+</button>
+        <button id="zoom-out" class="toolbar-button" title="Zoom out">−</button>
+        <button id="zoom-reset" class="toolbar-button" title="Reset zoom">◻</button>
+        <button id="fit-view" class="toolbar-button" title="Fit view">⊡</button>
+        <button id="toggle-graph" class="toolbar-button" title="Model properties">☰</button>
+      </div>
+      <div id="top-toolbar" class="toolbar toolbar-top hidden">
+        <div class="toolbar-path">
+          <button id="open-button-top" class="toolbar-path-back-button">Open</button>
+          <button id="graph-model" class="toolbar-path-name-button active">Model</button>
+          <button id="graph-block" class="toolbar-path-name-button">Block</button>
+        </div>
+        <div class="toolbar-select">
+          <select id="profile-select-top">
+            <option value="prefill">prefill</option>
+            <option value="decode">decode</option>
+          </select>
+          <div class="toolbar-select-arrow">▼</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

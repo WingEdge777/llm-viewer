@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm-viewer"
+version = "0.1.0"
+description = "Lightweight Hugging Face LLM structure graph generator"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = [
+    "fastapi>=0.110",
+    "transformers>=4.40",
+    "uvicorn>=0.29",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+llm-viewer = "llm_viewer.cli:main"
+llm_viewer = "llm_viewer.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+llm_viewer = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
