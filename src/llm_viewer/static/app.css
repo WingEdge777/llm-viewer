@@ -229,10 +229,15 @@ select {
 }
 
 .toolbar-path-back-button:hover,
-.toolbar-path-name-button:hover,
+.toolbar-path-name-button:hover {
+  background: #e8e8e8;
+  border-color: #555555;
+}
+
 .toolbar-path-name-button.active {
-  background: #ffffff;
-  border-color: #666666;
+  background: #333333;
+  border-color: #333333;
+  color: #ffffff;
 }
 
 .toolbar-select {
@@ -447,78 +452,121 @@ select {
 .node-card {
   position: absolute;
   width: calc(220px * var(--ui-scale));
-  border-radius: 8px;
-  border: 1.5px solid #333333;
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.12);
   background: #ffffff;
-  box-shadow: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   color: #242424;
   cursor: pointer;
   overflow: hidden;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.node-card:hover,
+.node-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border-color: rgba(0, 0, 0, 0.25);
+}
+
 .node-card.selected {
-  border-color: rgba(192, 0, 0, 0.8);
+  border-color: #e53935;
+  box-shadow: 0 4px 20px rgba(229, 57, 53, 0.25);
 }
 
 .node-card-header {
-  padding: calc(10px * var(--ui-scale)) calc(13px * var(--ui-scale));
-  border-bottom: 1px solid rgba(0, 0, 0, 0.22);
-  background: #ffffff;
-  color: #242424;
-  font-size: calc(15px * var(--ui-scale));
-  font-weight: 700;
-  line-height: 1.2;
+  padding: calc(11px * var(--ui-scale)) calc(14px * var(--ui-scale));
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  color: #ffffff;
+  font-size: calc(14px * var(--ui-scale));
+  font-weight: 600;
+  line-height: 1.3;
   text-align: left;
 }
 
-.node-card.attention .node-card-header { background: rgb(120, 60, 0); color: #ffffff; }
+.node-card.attention .node-card-header {
+  background: linear-gradient(135deg, #ff7043, #f4511e);
+}
 .node-card.embedding .node-card-header,
-.node-card.input .node-card-header,
-.node-card.output .node-card-header,
-.node-card.cache .node-card-header { background: rgb(0, 0, 0); color: #ffffff; }
-.node-card.mlp .node-card-header,
-.node-card.lmhead .node-card-header { background: rgb(51, 85, 136); color: #ffffff; }
-.node-card.residual .node-card-header,
-.node-card.norm .node-card-header { background: rgb(112, 41, 33); color: #ffffff; }
+.node-card.input .node-card-header {
+  background: linear-gradient(135deg, #78909c, #546e7a);
+}
+.node-card.output .node-card-header {
+  background: linear-gradient(135deg, #26a69a, #00897b);
+}
+.node-card.cache .node-card-header,
+.node-card.cache_update .node-card-header {
+  background: linear-gradient(135deg, #ab47bc, #8e24aa);
+}
+.node-card.mlp .node-card-header {
+  background: linear-gradient(135deg, #42a5f5, #1e88e5);
+}
+.node-card.lmhead .node-card-header {
+  background: linear-gradient(135deg, #66bb6a, #43a047);
+}
+.node-card.residual .node-card-header {
+  background: linear-gradient(135deg, #ffa726, #fb8c00);
+}
+.node-card.norm .node-card-header {
+  background: linear-gradient(135deg, #ec407a, #d81b60);
+}
+.node-card.block_stack .node-card-header,
+.node-card.transformerblock .node-card-header {
+  background: linear-gradient(135deg, #5c6bc0, #3949ab);
+}
+.node-card.default .node-card-header {
+  background: linear-gradient(135deg, #78909c, #607d8b);
+}
 
 .node-card-title {
-  font-size: calc(15px * var(--ui-scale));
-  font-weight: 700;
+  font-size: calc(14px * var(--ui-scale));
+  font-weight: 600;
   text-align: left;
 }
 
 .node-card-body {
-  padding: calc(14px * var(--ui-scale)) calc(13px * var(--ui-scale)) calc(16px * var(--ui-scale));
+  padding: calc(12px * var(--ui-scale)) calc(14px * var(--ui-scale));
   font-family: SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace;
-  font-size: calc(12px * var(--ui-scale));
-  font-weight: 600;
-  line-height: 1.6;
-  color: #4c4c4c;
+  font-size: calc(11px * var(--ui-scale));
+  font-weight: 500;
+  line-height: 1.7;
+  color: #555555;
   text-align: left;
 }
 
+.node-card-body strong {
+  color: #888888;
+  font-weight: 600;
+  font-size: calc(10px * var(--ui-scale));
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
 .edge-label {
-  fill: #666666;
+  fill: #444444;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Ubuntu", sans-serif;
   font-size: calc(9px * var(--ui-scale));
   font-weight: 500;
 }
 
 .edge-label-box {
-  fill: rgba(255, 255, 255, 0.86);
-  stroke: none;
+  fill: rgba(255, 255, 255, 0.92);
+  stroke: rgba(0, 0, 0, 0.08);
+  stroke-width: 1;
+  rx: 4;
+  ry: 4;
 }
 
 .edge-path {
-  stroke: #000000;
-  stroke-width: calc(1.1px * var(--ui-scale));
+  stroke: rgba(0, 0, 0, 0.35);
+  stroke-width: 1.8;
   fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .edge-path.residual {
-  stroke: #000000;
-  stroke-width: calc(1.15px * var(--ui-scale));
+  stroke: rgba(255, 152, 0, 0.6);
+  stroke-width: 2;
+  stroke-dasharray: 6, 4;
 }
 
 code {

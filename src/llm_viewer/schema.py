@@ -1,13 +1,18 @@
+"""Graph schema for LLM model visualization."""
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
 Shape = list[int | str]
+"""Shape representation: list of dimensions (int or symbolic string)."""
 
 
 @dataclass
 class Node:
+    """Graph node representing a model operation."""
+
     id: str
     name: str
     kind: str
@@ -23,6 +28,8 @@ class Node:
 
 @dataclass
 class Edge:
+    """Graph edge representing tensor flow between nodes."""
+
     source: str
     target: str
     shape: Shape | None = None
@@ -32,6 +39,8 @@ class Edge:
 
 @dataclass
 class Graph:
+    """Graph containing nodes and edges for model or block level."""
+
     id: str
     name: str
     level: str
@@ -42,8 +51,11 @@ class Graph:
 
 @dataclass
 class GraphBundle:
+    """Bundle containing metadata and multiple graphs (model + block)."""
+
     metadata: dict[str, Any]
     graphs: list[Graph]
 
     def to_dict(self) -> dict[str, Any]:
+        """Convert bundle to dictionary for JSON serialization."""
         return asdict(self)

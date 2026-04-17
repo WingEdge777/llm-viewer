@@ -65,7 +65,7 @@
   function updateResponsiveScale() {
     const width = graphSurface.clientWidth || window.innerWidth || 1440;
     const height = graphSurface.clientHeight || window.innerHeight || 900;
-    const scale = Math.max(1.08, Math.min(1.5, Math.min(width / 1440, height / 900) * 1.14));
+    const scale = Math.max(1.25, Math.min(1.8, Math.min(width / 1440, height / 900) * 1.35));
     state.uiScale = Number(scale.toFixed(3));
     document.documentElement.style.setProperty("--ui-scale", String(state.uiScale));
   }
@@ -207,126 +207,6 @@
     return [];
   }
 
-  function edgeOffsetMaps(graph) {
-    const outgoing = new Map();
-    const incoming = new Map();
-
-    for (const edge of graph.edges) {
-      if (!outgoing.has(edge.source)) {
-        outgoing.set(edge.source, []);
-      }
-      if (!incoming.has(edge.target)) {
-        incoming.set(edge.target, []);
-      }
-      outgoing.get(edge.source).push(edge);
-      incoming.get(edge.target).push(edge);
-    }
-
-    const offsetByEdge = new Map();
-
-    for (const edges of outgoing.values()) {
-      edges.forEach((edge, index) => {
-        const center = (edges.length - 1) / 2;
-        offsetByEdge.set(edge, (index - center) * 34);
-      });
-    }
-
-    for (const edges of incoming.values()) {
-      edges.forEach((edge, index) => {
-        const center = (edges.length - 1) / 2;
-        const current = offsetByEdge.get(edge) || 0;
-        offsetByEdge.set(edge, current + (index - center) * 18);
-      });
-    }
-
-    return offsetByEdge;
-  }
-
-  function edgeLabelMaps(graph) {
-    const outgoing = new Map();
-    const incoming = new Map();
-
-    for (const edge of graph.edges) {
-      if (!outgoing.has(edge.source)) {
-        outgoing.set(edge.source, []);
-      }
-      if (!incoming.has(edge.target)) {
-        incoming.set(edge.target, []);
-      }
-      outgoing.get(edge.source).push(edge);
-      incoming.get(edge.target).push(edge);
-    }
-
-    const labelByEdge = new Map();
-
-    for (const edges of outgoing.values()) {
-      const sorted = [...edges].sort((left, right) => left.target.localeCompare(right.target));
-      sorted.forEach((edge, index) => {
-        labelByEdge.set(edge, {
-          sourceIndex: index,
-          sourceCount: sorted.length,
-          targetIndex: 0,
-          targetCount: 1,
-        });
-      });
-    }
-
-    for (const edges of incoming.values()) {
-      const sorted = [...edges].sort((left, right) => left.source.localeCompare(right.source));
-      sorted.forEach((edge, index) => {
-        const current = labelByEdge.get(edge) || {
-          sourceIndex: 0,
-          sourceCount: 1,
-          targetIndex: 0,
-          targetCount: 1,
-        };
-        current.targetIndex = index;
-        current.targetCount = sorted.length;
-        labelByEdge.set(edge, current);
-      });
-    }
-
-    return labelByEdge;
-  }
-
-  function edgePortMaps(graph) {
-    const outgoing = new Map();
-    const incoming = new Map();
-
-    for (const edge of graph.edges) {
-      if (!outgoing.has(edge.source)) {
-        outgoing.set(edge.source, []);
-      }
-      if (!incoming.has(edge.target)) {
-        incoming.set(edge.target, []);
-      }
-      outgoing.get(edge.source).push(edge);
-      incoming.get(edge.target).push(edge);
-    }
-
-    const portByEdge = new Map();
-
-    for (const edges of outgoing.values()) {
-      const sorted = [...edges].sort((left, right) => left.target.localeCompare(right.target));
-      sorted.forEach((edge, index) => {
-        const center = (sorted.length - 1) / 2;
-        portByEdge.set(edge, { source: (index - center) * 26, target: 0 });
-      });
-    }
-
-    for (const edges of incoming.values()) {
-      const sorted = [...edges].sort((left, right) => left.source.localeCompare(right.source));
-      sorted.forEach((edge, index) => {
-        const center = (sorted.length - 1) / 2;
-        const current = portByEdge.get(edge) || { source: 0, target: 0 };
-        current.target = (index - center) * 34;
-        portByEdge.set(edge, current);
-      });
-    }
-
-    return portByEdge;
-  }
-
   function layoutGraph(graph) {
     const incoming = new Map(graph.nodes.map((node) => [node.id, []]));
     const outgoing = new Map(graph.nodes.map((node) => [node.id, []]));
@@ -371,9 +251,10 @@
 
     const layerKeys = Array.from(groups.keys()).sort((a, b) => a - b);
     const positions = new Map();
+    const nodeWidthsMap = new Map();
     let maxWidth = 1080;
     let maxHeight = 640;
-    const columnGap = 34 * state.uiScale;
+    const columnGap = 48 * state.uiScale;
 
     for (const layer of layerKeys) {
       const nodes = groups.get(layer);
@@ -384,44 +265,62 @@
         const edgeTextWidth = Math.max(
           ...((incoming.get(node.id) || []).concat(outgoing.get(node.id) || []).map((edge) => {
             const text = edgeLabelLines(edge).join(" ");
-            return Math.min(420, Math.max(nodeWidth(), text.length * (6 * state.uiScale)));
+            return Math.min(380, Math.max(nodeWidth(), text.length * (5.5 * state.uiScale)));
           })),
           nodeWidth()
         );
-        return Math.max(nodeWidth(), edgeTextWidth, nodeWidth() + Math.max(fanIn, fanOut) * 28 * state.uiScale);
+        const width = Math.max(nodeWidth(), edgeTextWidth, nodeWidth() + Math.max(fanIn, fanOut) * 16 * state.uiScale);
+        nodeWidthsMap.set(node.id, width);
+        return width;
       });
       const rowWidth = nodeWidths.reduce((total, width) => total + width, 0) + Math.max(0, nodes.length - 1) * columnGap;
-      const startX = Math.max(34, Math.floor((Math.max(maxWidth, rowWidth + 68) - rowWidth) / 2));
+      const startX = Math.max(48, Math.floor((Math.max(maxWidth, rowWidth + 96) - rowWidth) / 2));
       let cursorX = startX;
       nodes.forEach((node, index) => {
         const width = nodeWidths[index];
         const x = cursorX;
-        const y = 64 + layer * (178 * state.uiScale);
-        positions.set(node.id, { x, y });
+        const y = 72 + layer * (192 * state.uiScale);
+        positions.set(node.id, { x, y, width });
         maxWidth = Math.max(maxWidth, x + width);
-        maxHeight = Math.max(maxHeight, y + nodeHeight() + 24 * state.uiScale);
+        maxHeight = Math.max(maxHeight, y + nodeHeight() + 32 * state.uiScale);
         cursorX += width + columnGap;
       });
     }
 
-    return { positions, maxWidth, maxHeight };
+    return { positions, nodeWidthsMap, maxWidth, maxHeight };
   }
 
   function appendArrowDefinitions() {
     const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    
     const marker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
     marker.setAttribute("id", "arrowhead");
     marker.setAttribute("viewBox", "0 0 10 10");
-    marker.setAttribute("refX", "9");
+    marker.setAttribute("refX", "8");
     marker.setAttribute("refY", "5");
-    marker.setAttribute("markerWidth", String(6 * state.uiScale));
-    marker.setAttribute("markerHeight", String(6 * state.uiScale));
+    marker.setAttribute("markerWidth", String(5 * state.uiScale));
+    marker.setAttribute("markerHeight", String(5 * state.uiScale));
     marker.setAttribute("orient", "auto-start-reverse");
     const polygon = document.createElementNS("http://www.w3.org/2000/svg", "path");
     polygon.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
-    polygon.setAttribute("fill", "#000000");
+    polygon.setAttribute("fill", "rgba(0, 0, 0, 0.35)");
     marker.appendChild(polygon);
     defs.appendChild(marker);
+    
+    const residualMarker = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    residualMarker.setAttribute("id", "arrowhead-residual");
+    residualMarker.setAttribute("viewBox", "0 0 10 10");
+    residualMarker.setAttribute("refX", "8");
+    residualMarker.setAttribute("refY", "5");
+    residualMarker.setAttribute("markerWidth", String(5 * state.uiScale));
+    residualMarker.setAttribute("markerHeight", String(5 * state.uiScale));
+    residualMarker.setAttribute("orient", "auto-start-reverse");
+    const residualPolygon = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    residualPolygon.setAttribute("d", "M 0 0 L 10 5 L 0 10 z");
+    residualPolygon.setAttribute("fill", "rgba(255, 152, 0, 0.6)");
+    residualMarker.appendChild(residualPolygon);
+    defs.appendChild(residualMarker);
+    
     edgeLayer.appendChild(defs);
   }
 
@@ -468,10 +367,7 @@
       return;
     }
 
-    const { positions, maxWidth, maxHeight } = layoutGraph(graph);
-    const edgeOffsets = edgeOffsetMaps(graph);
-    const edgePorts = edgePortMaps(graph);
-    const edgeLabels = edgeLabelMaps(graph);
+    const { positions, nodeWidthsMap, maxWidth, maxHeight } = layoutGraph(graph);
     state.graphWidth = maxWidth;
     state.graphHeight = maxHeight;
     nodeLayer.style.width = maxWidth + "px";
@@ -488,88 +384,100 @@
       if (!source || !target) {
         continue;
       }
-      const spread = edgeOffsets.get(edge) || 0;
-      const ports = edgePorts.get(edge) || { source: 0, target: 0 };
-      const labelMeta = edgeLabels.get(edge) || {
-        sourceIndex: 0,
-        sourceCount: 1,
-        targetIndex: 0,
-        targetCount: 1,
-      };
-      const sourceCenterX = source.x + nodeWidth() / 2 + ports.source + spread * 0.25;
-      const targetCenterX = target.x + nodeWidth() / 2 + ports.target;
-      const x1 = sourceCenterX;
+
+      const sourceWidth = source.width || nodeWidth();
+      const targetWidth = target.width || nodeWidth();
+      const x1 = source.x + sourceWidth / 2;
       const y1 = source.y + nodeHeight();
-      const x2 = targetCenterX;
+      const x2 = target.x + targetWidth / 2;
       const y2 = target.y;
-      const midY = y1 + (y2 - y1) / 2;
-      const lines = edgeLabelLines(edge);
+      const midY = (y1 + y2) / 2;
 
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      let pathData = `M ${x1} ${y1} C ${x1} ${midY}, ${x2} ${midY}, ${x2} ${y2}`;
-      let labelX = (x1 + x2) / 2 + spread * 0.2;
-      let labelY = midY - 6;
-      let labelAnchor = "middle";
+      let pathData = `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
+      let labelX = (x1 + x2) / 2;
+      let labelY = midY - 4;
+
       if (edge.edge_kind === "residual") {
-        const laneX = Math.min(source.x, target.x) - (110 * state.uiScale + Math.abs(spread) * 0.2);
-        const sourceSideX = source.x - 10 * state.uiScale;
-        const targetSideX = target.x - 10 * state.uiScale;
-        const midLaneY = y1 + (y2 - y1) * 0.58;
-        pathData = [
-          `M ${sourceSideX} ${y1 - 2 * state.uiScale}`,
-          `C ${sourceSideX} ${y1 + 18 * state.uiScale}, ${laneX} ${y1 + 8 * state.uiScale}, ${laneX} ${midLaneY}`,
-          `S ${targetSideX} ${y2 - 16 * state.uiScale}, ${targetSideX} ${y2}`
-        ].join(" ");
-        labelX = laneX - 8 * state.uiScale;
-        labelY = midLaneY - 8 * state.uiScale;
-        labelAnchor = "end";
-      } else if (labelMeta.sourceCount > 1) {
-        const center = (labelMeta.sourceCount - 1) / 2;
-        const labelSpread = labelMeta.sourceIndex - center;
-        labelX = x1 + (x2 - x1) * 0.74 + labelSpread * 72 * state.uiScale;
-        labelY = y1 + 20 * state.uiScale + Math.abs(labelSpread) * 18 * state.uiScale;
-        labelAnchor = labelSpread < 0 ? "end" : labelSpread > 0 ? "start" : "middle";
-      } else if (labelMeta.targetCount > 1) {
-        const center = (labelMeta.targetCount - 1) / 2;
-        const labelSpread = labelMeta.targetIndex - center;
-        labelX = x2 - (x2 - x1) * 0.22 + labelSpread * 62 * state.uiScale;
-        labelY = y2 - 22 * state.uiScale - Math.abs(labelSpread) * 13 * state.uiScale;
-        labelAnchor = labelSpread < 0 ? "end" : labelSpread > 0 ? "start" : "middle";
+        const sourceWidth = source.width || nodeWidth();
+        const targetWidth = target.width || nodeWidth();
+        const minY = Math.min(source.y, target.y);
+        const maxY = Math.max(source.y + nodeHeight(), target.y + nodeHeight());
+        let leftMost = Infinity;
+        let rightMost = -Infinity;
+        for (const node of graph.nodes) {
+          if (node.id === edge.source || node.id === edge.target) continue;
+          const nodePos = positions.get(node.id);
+          if (!nodePos) continue;
+          const nodeW = nodePos.width || nodeWidth();
+          const nodeTop = nodePos.y;
+          const nodeBottom = nodePos.y + nodeHeight();
+          if (nodeBottom >= minY && nodeTop <= maxY) {
+            leftMost = Math.min(leftMost, nodePos.x);
+            rightMost = Math.max(rightMost, nodePos.x + nodeW);
+          }
+        }
+        const sourceRight = source.x + sourceWidth;
+        const targetRight = target.x + targetWidth;
+        const sourceLeft = source.x;
+        const targetLeft = target.x;
+        const rightSpace = Math.max(rightMost, sourceRight, targetRight);
+        const leftSpace = Math.min(leftMost === Infinity ? 0 : leftMost, sourceLeft, targetLeft);
+        const useRight = (rightSpace - Math.max(sourceRight, targetRight)) >= (Math.min(sourceLeft, targetLeft) - leftSpace);
+        const curveOffset = 32 * state.uiScale;
+        let laneX, startX, endX;
+        if (useRight) {
+          laneX = rightSpace + 72 * state.uiScale;
+          startX = sourceRight - 8;
+          endX = targetRight - 8;
+          labelX = laneX - 4;
+        } else {
+          laneX = leftSpace - 72 * state.uiScale;
+          startX = sourceLeft + 8;
+          endX = targetLeft + 8;
+          labelX = laneX + 4;
+        }
+        const startY = y1 - 4;
+        const endY = y2;
+        const ctrlY1 = startY + curveOffset;
+        pathData = `M ${startX} ${startY} C ${startX} ${ctrlY1} ${laneX} ${ctrlY1} ${laneX} ${midY} C ${laneX} ${midY + curveOffset} ${laneX} ${midY + curveOffset} ${laneX} ${midY + 48 * state.uiScale} C ${laneX} ${endY - curveOffset} ${endX} ${endY - curveOffset} ${endX} ${endY}`;
+        labelY = midY + 8 * state.uiScale;
       }
+
       path.setAttribute("class", `edge-path${edge.edge_kind === "residual" ? " residual" : ""}`);
       path.setAttribute("d", pathData);
-      path.setAttribute("marker-end", "url(#arrowhead)");
+      path.setAttribute("marker-end", edge.edge_kind === "residual" ? "url(#arrowhead-residual)" : "url(#arrowhead)");
       edgeLayer.appendChild(path);
 
-      if ((edge.tensor_name || edge.shape) && lines.length) {
-        const longest = lines.reduce((max, line) => Math.max(max, line.length), 0);
-        const labelWidth = Math.min(220 * state.uiScale, Math.max(42, longest * 6.2 * state.uiScale));
-        const labelHeight = Math.max(14, lines.length * 11) * state.uiScale;
-        const box = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-        box.setAttribute("class", "edge-label-box");
-        const boxX = labelAnchor === "start" ? labelX - 4 * state.uiScale : labelAnchor === "end" ? labelX - labelWidth + 4 * state.uiScale : labelX - labelWidth / 2;
-        box.setAttribute("x", String(boxX));
-        box.setAttribute("y", String(labelY - 9 * state.uiScale));
-        box.setAttribute("width", String(labelWidth));
-        box.setAttribute("height", String(labelHeight + 4 * state.uiScale));
-        edgeLayer.appendChild(box);
-        const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-        label.setAttribute("class", "edge-label");
-        label.setAttribute("x", String(labelX));
-        label.setAttribute("y", String(labelY));
-        label.setAttribute("text-anchor", labelAnchor);
-        lines.forEach((line, index) => {
-          const span = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
-          span.setAttribute("x", String(labelX));
-          if (index === 0) {
-            span.setAttribute("dy", "0");
-          } else {
-            span.setAttribute("dy", String(10 * state.uiScale));
-          }
-          span.textContent = line;
-          label.appendChild(span);
-        });
-        edgeLayer.appendChild(label);
+      if (edge.tensor_name || edge.shape) {
+        const lines = edgeLabelLines(edge);
+        if (lines.length) {
+          const longest = lines.reduce((max, line) => Math.max(max, line.length), 0);
+          const labelWidth = Math.min(180 * state.uiScale, Math.max(36, longest * 5.8 * state.uiScale));
+          const labelHeight = Math.max(12, lines.length * 10) * state.uiScale;
+          
+          const box = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+          box.setAttribute("class", "edge-label-box");
+          box.setAttribute("x", String(labelX - labelWidth / 2));
+          box.setAttribute("y", String(labelY - 6 * state.uiScale));
+          box.setAttribute("width", String(labelWidth));
+          box.setAttribute("height", String(labelHeight));
+          edgeLayer.appendChild(box);
+          
+          const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+          label.setAttribute("class", "edge-label");
+          label.setAttribute("x", String(labelX));
+          label.setAttribute("y", String(labelY));
+          label.setAttribute("text-anchor", "middle");
+          lines.forEach((line, index) => {
+            const span = document.createElementNS("http://www.w3.org/2000/svg", "tspan");
+            span.setAttribute("x", String(labelX));
+            span.setAttribute("dy", index === 0 ? "0" : String(9 * state.uiScale));
+            span.textContent = line;
+            label.appendChild(span);
+          });
+          edgeLayer.appendChild(label);
+        }
       }
     }
 
@@ -578,11 +486,13 @@
       if (!pos) {
         continue;
       }
+      const width = pos.width || nodeWidth();
       const card = document.createElement("button");
       card.type = "button";
       card.className = `node-card ${familyName(node)}${state.selectedNodeId === node.id ? " selected" : ""}`;
       card.style.left = pos.x + "px";
       card.style.top = pos.y + "px";
+      card.style.width = width + "px";
       const bodyRows = nodeShapeRows(node);
       card.innerHTML = `
         <div class="node-card-header">

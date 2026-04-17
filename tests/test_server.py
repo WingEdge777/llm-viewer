@@ -45,7 +45,7 @@ def test_frontend_has_profile_reload_and_block_navigation():
     assert "function zoomAtCenter(nextZoom)" in script
     assert "function renderModelSidebar()" in script
     assert 'sidebar.classList.toggle("hidden", !loaded);' in script
-    assert "function edgePortMaps(graph)" in script
+    assert "function layoutGraph(graph)" in script
     assert "const BASE_NODE_WIDTH = 220;" in script
     assert "function updateResponsiveScale()" in script
     assert "width: calc(220px * var(--ui-scale));" in css
