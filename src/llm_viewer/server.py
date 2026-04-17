@@ -19,7 +19,6 @@ from pydantic import BaseModel, ConfigDict
 from llm_viewer.profiles import ProfileName, get_profile
 from llm_viewer.registry import build_graph_bundle
 
-
 STATIC_DIR = resources.files("llm_viewer").joinpath("static")
 
 
@@ -78,10 +77,12 @@ def _open_browser(url: str) -> None:
         if sys.platform == "darwin":
             candidates.append(["open", url])
         else:
-            candidates.extend([
-                ["xdg-open", url],
-                ["gio", "open", url],
-            ])
+            candidates.extend(
+                [
+                    ["xdg-open", url],
+                    ["gio", "open", url],
+                ]
+            )
 
         for command in candidates:
             if shutil.which(command[0]) is None:

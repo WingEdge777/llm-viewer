@@ -150,9 +150,24 @@ class DecoderOnlyAdapter(GraphAdapter):
         ]
         edges = [
             Edge(source="tokens", target="embedding", shape=token_shape, tensor_name="input_ids"),
-            Edge(source="embedding", target="repeated_block", shape=hidden_shape, tensor_name="hidden_states"),
-            Edge(source="repeated_block", target="final_norm", shape=hidden_shape, tensor_name="hidden_states"),
-            Edge(source="final_norm", target="lm_head", shape=hidden_shape, tensor_name="hidden_states"),
+            Edge(
+                source="embedding",
+                target="repeated_block",
+                shape=hidden_shape,
+                tensor_name="hidden_states",
+            ),
+            Edge(
+                source="repeated_block",
+                target="final_norm",
+                shape=hidden_shape,
+                tensor_name="hidden_states",
+            ),
+            Edge(
+                source="final_norm",
+                target="lm_head",
+                shape=hidden_shape,
+                tensor_name="hidden_states",
+            ),
         ]
         return Graph(
             id="model",
@@ -339,22 +354,85 @@ class DecoderOnlyAdapter(GraphAdapter):
             ),
         ]
         edges = [
-            Edge(source="block_input", target="input_norm", shape=hidden_shape, tensor_name="hidden_states"),
-            Edge(source="input_norm", target="q_proj", shape=hidden_shape, tensor_name="normed_hidden_states"),
-            Edge(source="input_norm", target="k_proj", shape=hidden_shape, tensor_name="normed_hidden_states"),
-            Edge(source="input_norm", target="v_proj", shape=hidden_shape, tensor_name="normed_hidden_states"),
+            Edge(
+                source="block_input",
+                target="input_norm",
+                shape=hidden_shape,
+                tensor_name="hidden_states",
+            ),
+            Edge(
+                source="input_norm",
+                target="q_proj",
+                shape=hidden_shape,
+                tensor_name="normed_hidden_states",
+            ),
+            Edge(
+                source="input_norm",
+                target="k_proj",
+                shape=hidden_shape,
+                tensor_name="normed_hidden_states",
+            ),
+            Edge(
+                source="input_norm",
+                target="v_proj",
+                shape=hidden_shape,
+                tensor_name="normed_hidden_states",
+            ),
             Edge(source="q_proj", target="attn_mix", shape=q_heads_shape, tensor_name="q"),
-            Edge(source="attn_mix", target="attn_output", shape=attn_out_shape, tensor_name="context"),
-            Edge(source="block_input", target="attn_residual", shape=hidden_shape, tensor_name="residual", edge_kind="residual"),
-            Edge(source="attn_output", target="attn_residual", shape=attn_out_shape, tensor_name="attn_out"),
-            Edge(source="attn_residual", target="post_attn_norm", shape=hidden_shape, tensor_name="hidden_states"),
-            Edge(source="post_attn_norm", target="gate_proj", shape=hidden_shape, tensor_name="normed_hidden_states"),
-            Edge(source="post_attn_norm", target="up_proj", shape=hidden_shape, tensor_name="normed_hidden_states"),
-            Edge(source="gate_proj", target="down_proj", shape=mlp_mid_shape, tensor_name="gated_mlp"),
+            Edge(
+                source="attn_mix", target="attn_output", shape=attn_out_shape, tensor_name="context"
+            ),
+            Edge(
+                source="block_input",
+                target="attn_residual",
+                shape=hidden_shape,
+                tensor_name="residual",
+                edge_kind="residual",
+            ),
+            Edge(
+                source="attn_output",
+                target="attn_residual",
+                shape=attn_out_shape,
+                tensor_name="attn_out",
+            ),
+            Edge(
+                source="attn_residual",
+                target="post_attn_norm",
+                shape=hidden_shape,
+                tensor_name="hidden_states",
+            ),
+            Edge(
+                source="post_attn_norm",
+                target="gate_proj",
+                shape=hidden_shape,
+                tensor_name="normed_hidden_states",
+            ),
+            Edge(
+                source="post_attn_norm",
+                target="up_proj",
+                shape=hidden_shape,
+                tensor_name="normed_hidden_states",
+            ),
+            Edge(
+                source="gate_proj", target="down_proj", shape=mlp_mid_shape, tensor_name="gated_mlp"
+            ),
             Edge(source="up_proj", target="down_proj", shape=mlp_mid_shape, tensor_name="up_mlp"),
-            Edge(source="attn_residual", target="mlp_residual", shape=hidden_shape, tensor_name="residual", edge_kind="residual"),
-            Edge(source="down_proj", target="mlp_residual", shape=hidden_shape, tensor_name="mlp_out"),
-            Edge(source="mlp_residual", target="block_output", shape=hidden_shape, tensor_name="hidden_states"),
+            Edge(
+                source="attn_residual",
+                target="mlp_residual",
+                shape=hidden_shape,
+                tensor_name="residual",
+                edge_kind="residual",
+            ),
+            Edge(
+                source="down_proj", target="mlp_residual", shape=hidden_shape, tensor_name="mlp_out"
+            ),
+            Edge(
+                source="mlp_residual",
+                target="block_output",
+                shape=hidden_shape,
+                tensor_name="hidden_states",
+            ),
         ]
 
         if profile.name is ProfileName.DECODE:
@@ -364,7 +442,10 @@ class DecoderOnlyAdapter(GraphAdapter):
                     name="Past KV Cache",
                     kind="cache",
                     op_family="Cache",
-                    output_shapes=[[batch, spec.num_kv_heads, past, spec.head_dim], [batch, spec.num_kv_heads, past, spec.head_dim]],
+                    output_shapes=[
+                        [batch, spec.num_kv_heads, past, spec.head_dim],
+                        [batch, spec.num_kv_heads, past, spec.head_dim],
+                    ],
                     attrs={"past_len": past},
                     module_path="past_key_values",
                     source_file=self._source_file(spec.model_type),
@@ -374,7 +455,11 @@ class DecoderOnlyAdapter(GraphAdapter):
                     name="Cache Update",
                     kind="cache_update",
                     op_family="Cache",
-                    input_shapes=[kv_heads_shape, kv_heads_shape, [batch, spec.num_kv_heads, past, spec.head_dim]],
+                    input_shapes=[
+                        kv_heads_shape,
+                        kv_heads_shape,
+                        [batch, spec.num_kv_heads, past, spec.head_dim],
+                    ],
                     output_shapes=[total_kv_shape, total_kv_shape],
                     attrs={"new_total_len": seq + past},
                     module_path="model.layers.*.self_attn.past_key_values",
@@ -384,10 +469,30 @@ class DecoderOnlyAdapter(GraphAdapter):
             nodes[5:5] = cache_nodes
             edges.extend(
                 [
-                    Edge(source="past_kv", target="cache_update", shape=[batch, spec.num_kv_heads, past, spec.head_dim], tensor_name="past_k"),
-                    Edge(source="k_proj", target="cache_update", shape=kv_heads_shape, tensor_name="new_k"),
-                    Edge(source="v_proj", target="cache_update", shape=kv_heads_shape, tensor_name="new_v"),
-                    Edge(source="cache_update", target="attn_mix", shape=total_kv_shape, tensor_name="cache_kv"),
+                    Edge(
+                        source="past_kv",
+                        target="cache_update",
+                        shape=[batch, spec.num_kv_heads, past, spec.head_dim],
+                        tensor_name="past_k",
+                    ),
+                    Edge(
+                        source="k_proj",
+                        target="cache_update",
+                        shape=kv_heads_shape,
+                        tensor_name="new_k",
+                    ),
+                    Edge(
+                        source="v_proj",
+                        target="cache_update",
+                        shape=kv_heads_shape,
+                        tensor_name="new_v",
+                    ),
+                    Edge(
+                        source="cache_update",
+                        target="attn_mix",
+                        shape=total_kv_shape,
+                        tensor_name="cache_kv",
+                    ),
                 ]
             )
         else:
@@ -426,7 +531,11 @@ class DecoderOnlyAdapter(GraphAdapter):
         vocab_size = int(getattr(hf_config, "vocab_size", 0))
         head_dim = int(getattr(hf_config, "head_dim", hidden_size // num_heads))
         architectures = getattr(hf_config, "architectures", None) or []
-        architecture = architectures[0] if architectures else f"{type(hf_config).__name__.removesuffix('Config')}ForCausalLM"
+        architecture = (
+            architectures[0]
+            if architectures
+            else f"{type(hf_config).__name__.removesuffix('Config')}ForCausalLM"
+        )
 
         return DecoderSpec(
             model_type=model_type,
