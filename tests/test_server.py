@@ -1,5 +1,10 @@
 from llm_viewer.cli import main
-from llm_viewer.server import _pick_available_port, _static_dir, create_app
+from llm_viewer.server import (
+    GraphRequest,
+    _pick_available_port,
+    _static_dir,
+    create_app,
+)
 
 
 def _route(app, path: str):
@@ -56,7 +61,7 @@ def test_api_graph_endpoint_returns_bundle():
     route = _route(app, "/api/graph")
 
     response = route.endpoint(
-        route.dependant.body_params[0].type_(
+        GraphRequest(
             profile="prefill",
             config={
                 "model_type": "qwen3",

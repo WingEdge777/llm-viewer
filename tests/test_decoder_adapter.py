@@ -40,7 +40,8 @@ def test_decode_adds_cache_nodes():
 
     assert "past_kv" in node_ids
     assert "cache_update" in node_ids
-    assert "cache_kv" in edge_names
+    assert "cache_k" in edge_names
+    assert "cache_v" in edge_names
     assert ("k_proj", "attn_mix") not in direct_targets
     assert ("v_proj", "attn_mix") not in direct_targets
 

@@ -84,6 +84,14 @@
     profileSelectTop.value = value;
   }
 
+  function preferredGraphId(profile, bundle) {
+    if (!bundle || !bundle.graphs || !bundle.graphs.length) {
+      return "model";
+    }
+    const desired = profile === "decode" ? "block" : "model";
+    return bundle.graphs.some((graph) => graph.id === desired) ? desired : bundle.graphs[0].id;
+  }
+
   async function fetchBundle(config, profile) {
     const response = await fetch("/api/graph", {
       method: "POST",
@@ -116,6 +124,7 @@
       const payload = await fetchBundle(config, profileSelectTop.value);
       state.bundle = payload;
       state.config = config;
+      state.graphId = preferredGraphId(profileSelectTop.value, payload);
       state.selectedNodeId = null;
       state.fileName = file.name;
       titleText.textContent = file.name + " · " + profileSelectTop.value;
@@ -137,8 +146,7 @@
       const payload = await fetchBundle(state.config, profile);
       state.bundle = payload;
       titleText.textContent = state.fileName + " · " + profile;
-      const nextGraph = payload.graphs.find((graph) => graph.id === state.graphId);
-      state.graphId = nextGraph ? nextGraph.id : payload.graphs[0].id;
+      state.graphId = preferredGraphId(profile, payload);
       state.selectedNodeId = null;
       render();
       fitView();

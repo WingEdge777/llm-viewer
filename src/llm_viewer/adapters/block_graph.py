@@ -338,7 +338,13 @@ def _add_decode_cache_nodes(
                 source="cache_update",
                 target="attn_mix",
                 shape=total_kv_shape,
-                tensor_name="cache_kv",
+                tensor_name="cache_k",
+            ),
+            Edge(
+                source="cache_update",
+                target="attn_mix",
+                shape=total_kv_shape,
+                tensor_name="cache_v",
             ),
         ]
     )
