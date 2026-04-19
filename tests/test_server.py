@@ -2,6 +2,7 @@ from llm_viewer.cli import main
 from llm_viewer.server import (
     GraphRequest,
     _pick_available_port,
+    _render_index_html,
     _static_dir,
     create_app,
 )
@@ -20,7 +21,8 @@ def test_index_route_returns_static_html():
 
     response = route.endpoint()
 
-    assert str(response.path).endswith("index.html")
+    assert b"./static/app.css?v=" in response.body
+    assert b"./static/app.js?v=" in response.body
 
 
 def test_static_assets_exist():
@@ -37,6 +39,13 @@ def test_static_assets_exist():
     assert 'href="./static/app.css"' in html
     assert 'src="./static/app.js"' in html
     assert "background-color: #ececec;" in css
+
+
+def test_render_index_html_adds_asset_versions():
+    html = _render_index_html()
+
+    assert "./static/app.css?v=" in html
+    assert "./static/app.js?v=" in html
 
 
 def test_frontend_has_profile_reload_and_block_navigation():

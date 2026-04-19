@@ -12,7 +12,7 @@ from typing import Any
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict
 
@@ -34,8 +34,8 @@ def create_app() -> FastAPI:
     app.mount("/static", StaticFiles(directory=_static_dir()), name="static")
 
     @app.get("/", include_in_schema=False)
-    def index() -> FileResponse:
-        return FileResponse(_static_dir() / "index.html")
+    def index() -> HTMLResponse:
+        return HTMLResponse(_render_index_html())
 
     @app.get("/api/health")
     def health() -> dict[str, str]:
@@ -65,6 +65,16 @@ def run_app(host: str, port: int, open_browser: bool = True) -> int:
 
 def _static_dir() -> Path:
     return Path(str(STATIC_DIR))
+
+
+def _render_index_html() -> str:
+    static_dir = _static_dir()
+    html = (static_dir / "index.html").read_text(encoding="utf-8")
+    css_version = int((static_dir / "app.css").stat().st_mtime)
+    js_version = int((static_dir / "app.js").stat().st_mtime)
+    html = html.replace("./static/app.css", f"./static/app.css?v={css_version}")
+    html = html.replace("./static/app.js", f"./static/app.js?v={js_version}")
+    return html
 
 
 def _open_browser(url: str) -> None:
