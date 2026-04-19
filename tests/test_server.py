@@ -34,6 +34,8 @@ def test_static_assets_exist():
     css = (static_dir / "app.css").read_text(encoding="utf-8")
 
     assert 'id="sidebar" class="sidebar hidden"' in html
+    assert 'href="./static/app.css"' in html
+    assert 'src="./static/app.js"' in html
     assert "background-color: #ececec;" in css
 
 
@@ -53,6 +55,7 @@ def test_frontend_has_profile_reload_and_block_navigation():
     assert "function layoutGraph(graph)" in script
     assert "const BASE_NODE_WIDTH = 220;" in script
     assert "function updateResponsiveScale()" in script
+    assert 'fetch("./api/graph"' in script
     assert "width: calc(220px * var(--ui-scale));" in css
 
 
@@ -94,7 +97,7 @@ def test_cli_no_args_starts_app(monkeypatch):
     result = main([])
 
     assert result == 0
-    assert captured == {"host": "127.0.0.1", "port": 8000, "open_browser": True}
+    assert captured == {"host": "127.0.0.1", "port": 8989, "open_browser": True}
 
 
 def test_pick_available_port_skips_busy_port():
@@ -115,7 +118,7 @@ def test_pick_available_port_skips_busy_port():
 
         def bind(self, address):
             self.attempts.append(address[1])
-            if address[1] == 8000:
+            if address[1] == 8989:
                 raise OSError("busy")
             return None
 
@@ -124,9 +127,9 @@ def test_pick_available_port_skips_busy_port():
     original = server.socket.socket
     server.socket.socket = FakeSocket
     try:
-        picked = _pick_available_port("127.0.0.1", 8000, attempts=4)
+        picked = _pick_available_port("127.0.0.1", 8989, attempts=4)
     finally:
         server.socket.socket = original
 
-    assert picked == 8001
-    assert FakeSocket.attempts[:2] == [8000, 8001]
+    assert picked == 8990
+    assert FakeSocket.attempts[:2] == [8989, 8990]

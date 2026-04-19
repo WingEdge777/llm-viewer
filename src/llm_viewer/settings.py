@@ -7,7 +7,7 @@ from dataclasses import dataclass
 @dataclass(frozen=True)
 class Settings:
     host: str = "127.0.0.1"
-    port: int = 8000
+    port: int = 8989
     prefill_batch_size: int = 1
     prefill_seq_len: int = 128
     decode_batch_size: int = 1
@@ -18,7 +18,7 @@ class Settings:
     def from_env(cls) -> Settings:
         return cls(
             host=os.getenv("LLM_VIEWER_HOST", "127.0.0.1"),
-            port=int(os.getenv("LLM_VIEWER_PORT", "8000")),
+            port=int(os.getenv("LLM_VIEWER_PORT", "8989")),
             prefill_batch_size=int(os.getenv("LLM_VIEWER_PREFILL_BATCH", "1")),
             prefill_seq_len=int(os.getenv("LLM_VIEWER_PREFILL_SEQ", "128")),
             decode_batch_size=int(os.getenv("LLM_VIEWER_DECODE_BATCH", "1")),

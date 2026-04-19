@@ -93,7 +93,7 @@
   }
 
   async function fetchBundle(config, profile) {
-    const response = await fetch("/api/graph", {
+    const response = await fetch("./api/graph", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
